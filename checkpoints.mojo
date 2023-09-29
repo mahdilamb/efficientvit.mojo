@@ -3,6 +3,7 @@ from python.object import PythonObject
 from python import Python
 from shared import strings
 from utils.list import Dim, DimList
+from sys.info import sizeof
 
 
 @value
@@ -21,7 +22,17 @@ struct WeightsInfo:
 @register_passable("trivial")
 struct FILE:
     ...
-
+fn to_dim_list(ptr:Pointer[UInt8]) -> DimList:
+    let dims = strings.split(strings.from_ptr(ptr)[1:-1],",")
+    var i = 0
+    var dim : Pointer[UInt8]
+    while True:
+        dim = dims[i]
+        if dim == dim.get_null():
+            break
+        strings.prints(dim)
+        i+=1
+    return DimList()
 
 fn read(path: StringLiteral) raises -> None:
     """Read an EfficientViT checkpoint file."""
@@ -51,11 +62,12 @@ fn read(path: StringLiteral) raises -> None:
     for i in range(num_weights):
         let weights_header = strings.split(read_line[128](), ";")
         let info = WeightsInfo(
-            strings.from_ptr(strings.split(headers[0], "=")[0]),
-            DimList(),
-            strings.from_ptr(strings.split(headers[2], "=")[2]),
-            strings.atol(strings.split(headers[3], "=")[1]),
+            strings.from_ptr(strings.split(weights_header[0], "=")[1]),
+            to_dim_list(strings.split(weights_header[1], "=")[1]),
+            strings.from_ptr(strings.split(weights_header[2], "=")[1]),
+            strings.atol(strings.split(weights_header[3], "=")[1]),
         )
+        print(info.bytes)
 
 
 

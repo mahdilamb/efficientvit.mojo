@@ -15,7 +15,6 @@ fn startswith(haystack: CharPtr, needle: CharPtr) -> Bool:
         == 0
     )
 
-
 @always_inline
 fn startswith(haystack: String, needle: String) -> Bool:
     return startswith(to_ptr(haystack), to_ptr(needle))
@@ -52,10 +51,12 @@ fn split(buf: CharPtr, delim: CharPtr) -> Pointer[CharPtr]:
     memcpy[CharPtr](trimmed, output.data, output.size)
     return trimmed
 
-
+@always_inline
 fn split(buf: CharPtr, delim: String) -> Pointer[CharPtr]:
     return split(buf, to_ptr(delim))
-
+@always_inline
+fn split(buf: String, delim: String) -> Pointer[CharPtr]:
+    return split(to_ptr(buf), to_ptr(delim))
 
 fn to_ptr(s: String) -> CharPtr:
     """Convert a string to a char_pointer."""
