@@ -10,7 +10,12 @@ struct EffVitHeader:
     var model: String
     var width: Int
     var height: Int
-
+@value
+struct WeightsInfo:
+    var name: String
+    var shape: DimList
+    var type: String
+    var bytes: Int
 
 @value
 @register_passable("trivial")
@@ -43,7 +48,15 @@ fn read(path: StringLiteral) raises -> None:
         strings.atol(strings.split(headers[3], "=")[1]),
         strings.atol(strings.split(headers[4], "=")[1]),
     )
-    print(header.model)
+    for i in range(num_weights):
+        let weights_header = strings.split(read_line[128](), ";")
+        let info = WeightsInfo(
+            strings.from_ptr(strings.split(headers[0], "=")[0]),
+            DimList(),
+            strings.from_ptr(strings.split(headers[2], "=")[2]),
+            strings.atol(strings.split(headers[3], "=")[1]),
+        )
+
 
 
 fn main() raises:
