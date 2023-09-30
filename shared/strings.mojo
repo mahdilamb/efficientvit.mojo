@@ -15,6 +15,7 @@ fn startswith(haystack: CharPtr, needle: CharPtr) -> Bool:
         == 0
     )
 
+
 @always_inline
 fn startswith(haystack: String, needle: String) -> Bool:
     return startswith(to_ptr(haystack), to_ptr(needle))
@@ -39,6 +40,7 @@ fn split(buf: CharPtr, delim: CharPtr) -> Pointer[CharPtr]:
     token_ptr = external_call["strtok", CharPtr, CharPtr, CharPtr](buf, delim)
     if token_ptr == token_ptr.get_null():
         output.push_back(buf)
+        output.push_back(CharPtr.get_null())
         return output.data
     while True:
         output.push_back(token_ptr)
@@ -47,16 +49,19 @@ fn split(buf: CharPtr, delim: CharPtr) -> Pointer[CharPtr]:
         )
         if token_ptr == token_ptr.get_null():
             break
-    let trimmed = Pointer[CharPtr].alloc(output.size)
-    memcpy[CharPtr](trimmed, output.data, output.size)
-    return trimmed
+    output.push_back(CharPtr.get_null())
+    return output.data
+
 
 @always_inline
 fn split(buf: CharPtr, delim: String) -> Pointer[CharPtr]:
     return split(buf, to_ptr(delim))
+
+
 @always_inline
 fn split(buf: String, delim: String) -> Pointer[CharPtr]:
     return split(to_ptr(buf), to_ptr(delim))
+
 
 fn to_ptr(s: String) -> CharPtr:
     """Convert a string to a char_pointer."""
@@ -70,8 +75,9 @@ fn to_ptr(s: String) -> CharPtr:
 
 @always_inline
 fn strtol(ptr: CharPtr) -> Int:
-    let endptr = Pointer[CharPtr].alloc(0)
-    return external_call["strtol", Int, CharPtr, Pointer[CharPtr], Int](ptr, endptr, 10)
+    return external_call["strtol", Int, CharPtr, Pointer[CharPtr], Int](
+        ptr, Pointer[CharPtr].alloc(0), 10
+    )
 
 
 @always_inline

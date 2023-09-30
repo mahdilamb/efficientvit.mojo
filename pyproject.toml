@@ -1,3 +1,5 @@
+[build-system]
+requires = ["setuptools", "wheel"]
 [project]
 authors = []
 dependencies = [
@@ -12,3 +14,5 @@ dependencies = [
 name = "efficient-vit-mojo"
 requires-python = "~=3.10"
 version = "0.0.1"
+[tool.setuptools.package-dir]
+efficient_vit = "."

@@ -4,6 +4,14 @@ from python import Python
 from shared import strings
 from utils.list import Dim, DimList
 from sys.info import sizeof
+from tensor import TensorShape, Tensor
+from python import Python, Dictionary
+from utils.static_tuple import StaticTuple
+import layers
+
+alias SEEK_SET: Int = 0
+alias SEEK_CUR: Int = SEEK_SET + 1
+alias SEEK_END: Int = SEEK_CUR + 1
 
 
 @value
@@ -11,30 +19,156 @@ struct EffVitHeader:
     var model: String
     var width: Int
     var height: Int
+    var num_weights: Int
+    var type: String
+
+    @staticmethod
+    def from_string(owned ptr: Pointer[UInt8]) -> EffVitHeader:
+        let frags = strings.split(ptr, ";")
+        var i = 0
+        var frag = frags[i]
+        let kv: Pointer[Pointer[UInt8]]
+        let k: String
+        var out = EffVitHeader("", -1, -1, -1, "")
+        while frag != frag.get_null():
+            kv = strings.split(frag, "=")
+            k = strings.from_ptr(kv[0])
+            if k == "model":
+                out.model = strings.from_ptr(kv[1])
+            elif k == "width":
+                out.width = strings.atol(kv[1])
+            elif k == "height":
+                out.height = strings.atol(kv[1])
+            elif k == "type":
+                out.type = strings.from_ptr(kv[1])
+            elif k == "num_weights":
+                out.num_weights = strings.atol(kv[1])
+            i += 1
+            frag = frags[i]
+        return out
+
+    def __repr__(self) -> String:
+        var out: String = "Header {model="
+        out += (
+            self.model
+            + ", size=("
+            + String(self.height)
+            + ", "
+            + String(self.width)
+            + "), dtype="
+            + self.type
+            + "}"
+        )
+        return out
+
+    def __str__(self) -> String:
+        return self.__repr__()
+
+
+@always_inline
+fn to_shape(ptr: Pointer[UInt8]) raises -> TensorShape:
+    let str = strings.split(strings.from_ptr(ptr), ",")
+    var d_ptr: Pointer[UInt8]
+    var i = 0
+    var dims = DynamicVector[Int]()
+    while True:
+        d_ptr = str[i]
+        if d_ptr == d_ptr.get_null():
+            break
+        dims.push_back(strings.atol(d_ptr))
+        i += 1
+    if dims.size == 1:
+        return TensorShape(dims[0])
+    if dims.size == 2:
+        return TensorShape(dims[0], dims[1])
+    if dims.size == 3:
+        return TensorShape(dims[0], dims[1], dims[2])
+    if dims.size == 4:
+        return TensorShape(dims[0], dims[1], dims[2], dims[3])
+    raise Error("Unsupported dimension size")
+
+
 @value
 struct WeightsInfo:
     var name: String
-    var shape: DimList
     var type: String
+    var shape: TensorShape
     var bytes: Int
+
+    @staticmethod
+    def from_string(owned ptr: Pointer[UInt8]) -> WeightsInfo:
+        let frags = strings.split(ptr, ";")
+        var i = 0
+        var frag = frags[i]
+        let kv: Pointer[Pointer[UInt8]]
+        let k: String
+        var out = WeightsInfo("", "", TensorShape(), -1)
+        while frag != frag.get_null():
+            kv = strings.split(frag, "=")
+            k = strings.from_ptr(kv[0])
+            if k == "name":
+                out.name = strings.from_ptr(kv[1])
+            elif k == "type":
+                out.type = strings.from_ptr(kv[1])
+            elif k == "shape":
+                out.shape = to_shape(kv[1])
+            elif k == "bytes":
+                out.bytes = strings.atol(kv[1])
+            i += 1
+            frag = frags[i]
+        return out
+
+    def __repr__(self) -> String:
+        var out: String = "Weights {name="
+        out += (
+            self.name
+            + ", shape="
+            + self.shape.__repr__()
+            + ", bytes="
+            + self.bytes
+            + ", type="
+            + self.type
+            + "}"
+        )
+        return out
+
+    def __str__(self) -> String:
+        return self.__repr__()
+
 
 @value
 @register_passable("trivial")
 struct FILE:
     ...
-fn to_dim_list(ptr:Pointer[UInt8]) -> DimList:
-    let dims = strings.split(strings.from_ptr(ptr)[1:-1],",")
-    var i = 0
-    var dim : Pointer[UInt8]
-    while True:
-        dim = dims[i]
-        if dim == dim.get_null():
-            break
-        strings.prints(dim)
-        i+=1
-    return DimList()
 
-fn read(path: StringLiteral) raises -> None:
+
+struct Weights:
+    var _index: Dictionary
+    var _fp: Pointer[FILE]
+
+    def __init__(inout self, owned index: Dictionary, owned fp: Pointer[FILE]):
+        self._index = index
+        self._fp = fp
+
+    @always_inline
+    fn get[dtype: DType](self, name: String) raises -> Tensor[dtype]:
+        let pos = self._index[name].__index__()
+        external_call["fseek", Int, Pointer[FILE], Int64, Int](self._fp, pos, SEEK_SET)
+        let ptr = external_call[
+            "fgets", Pointer[UInt8], Pointer[UInt8], Int32, Pointer[FILE]
+        ](Pointer[UInt8]().alloc(128), 128, self._fp)
+        ptr.store(strings.len(ptr) - 1, ord("\0"))
+        let info = WeightsInfo.from_string(ptr)
+        if info.type != dtype.__str__():
+            raise Error("Invalid dtype supplied.")
+        let data = DTypePointer[DType.uint8].alloc(info.bytes)
+        external_call["fread", Int, DTypePointer[DType.uint8], Int, Int, Pointer[FILE]](
+            data, 1, info.bytes, self._fp
+        )
+        return Tensor(data.bitcast[dtype](), info.shape)
+
+
+fn load(path: String) raises -> Weights:
     """Read an EfficientViT checkpoint file."""
     let fp = external_call["fopen", Pointer[FILE], Pointer[UInt8], Pointer[UInt8]](
         strings.to_ptr(path), strings.to_ptr("rb")
@@ -47,29 +181,16 @@ fn read(path: StringLiteral) raises -> None:
             "fgets", Pointer[UInt8], Pointer[UInt8], Int32, Pointer[FILE]
         ](Pointer[UInt8]().alloc(size), size, fp)
         let t = external_call["ftell", Int, Pointer[FILE]](fp)
-        let out = ptr.alloc(t - pos)
-        memcpy[UInt8](out, ptr, t - pos)
-        pos += t
-        return out
+        ptr.store(t - pos - 1, ord("\0"))
+        pos = t
+        return ptr
 
-    let headers = strings.split(read_line[128](), ";")
-    let num_weights = strings.atol(strings.split(headers[5], "=")[1])
-    let header = EffVitHeader(
-        strings.from_ptr(strings.split(headers[2], "=")[1]),
-        strings.atol(strings.split(headers[3], "=")[1]),
-        strings.atol(strings.split(headers[4], "=")[1]),
-    )
-    for i in range(num_weights):
-        let weights_header = strings.split(read_line[128](), ";")
-        let info = WeightsInfo(
-            strings.from_ptr(strings.split(weights_header[0], "=")[1]),
-            to_dim_list(strings.split(weights_header[1], "=")[1]),
-            strings.from_ptr(strings.split(weights_header[2], "=")[1]),
-            strings.atol(strings.split(weights_header[3], "=")[1]),
-        )
-        print(info.bytes)
-
-
-
-fn main() raises:
-    print(read("assets/checkpoints/ImageNet-EfficientViT-B3-224x224.effvit.bin"))
+    let headers = EffVitHeader.from_string(read_line[128]())
+    let index = Python.dict()
+    for i in range(headers.num_weights):
+        let qpos = pos
+        let info = WeightsInfo.from_string(read_line[512]())
+        index[info.name] = qpos
+        external_call["fseek", Int, Pointer[FILE], Int64, Int](fp, info.bytes, SEEK_CUR)
+        pos = external_call["ftell", Int, Pointer[FILE]](fp)
+    return Weights(index ^, fp ^)

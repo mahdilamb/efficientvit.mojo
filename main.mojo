@@ -6,7 +6,7 @@ from sys import argv
 """
 fn load_images[n:Int, width:Int,height:Int](paths:InlinedFixedVector[n, StringLiteral]) raises:
     let size:Int = n* 3 * width*height
-    let interop = Python.import_module("efficientvit.transforms")
+    let interop = Python.import_module("interop.transforms")
     var path_list = Python.evaluate("list()")
     for i in range(n):
         path_list.append(paths[i])

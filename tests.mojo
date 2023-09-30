@@ -1,6 +1,5 @@
 from python import Python
-from shared import pointers, strings
-import act
+from shared import pointers, strings, act
 from testing import assert_equal, assert_false, assert_true
 from tensor import Tensor, TensorSpec
 
@@ -28,7 +27,7 @@ fn numpy_copied_test() raises:
     let a = np.random.rand(16).astype(np.float32)
     let p = pointers.from_numpy[16](a)
     for q in range(16):
-        assert_equal[DType.float64](a[q].to_float64(), p.load(q).cast[DType.float64]())
+        _ = assert_equal[DType.float64](a[q].to_float64(), p.load(q).cast[DType.float64]())
 
 
 fn numpy_shared_test() raises:
@@ -37,7 +36,7 @@ fn numpy_shared_test() raises:
     let a = np.random.rand(16).astype(np.float32)
     let p = pointers.from_numpy[16](a, False)
     for q in range(16):
-        assert_equal[DType.float64](a[q].to_float64(), p.load(q).cast[DType.float64]())
+        _ = assert_equal[DType.float64](a[q].to_float64(), p.load(q).cast[DType.float64]())
 
 
 fn torch_copied_test() raises:
@@ -47,7 +46,7 @@ fn torch_copied_test() raises:
     let a = torch.rand(16).type(torch.float32)
     let p = pointers.from_torch[16](a)
     for q in range(a.numel()):
-        assert_equal[DType.float64](a[q].to_float64(), p.load(q).cast[DType.float64]())
+        _ = assert_equal[DType.float64](a[q].to_float64(), p.load(q).cast[DType.float64]())
 
 
 fn torch_shared_test() raises:
@@ -56,7 +55,7 @@ fn torch_shared_test() raises:
     let a = torch.rand(16).type(torch.float32)
     let p = pointers.from_torch[16](a, False)
     for q in range(a.numel()):
-        assert_equal[DType.float64](a[q].to_float64(), p.load(q).cast[DType.float64]())
+        _ = assert_equal[DType.float64](a[q].to_float64(), p.load(q).cast[DType.float64]())
 
 
 fn torch_v_relu() raises:
@@ -67,7 +66,7 @@ fn torch_v_relu() raises:
 
     let c = torch.nn.functional.relu(a)
     for q in range(a.numel()):
-        assert_equal[DType.float64](c[q].to_float64(), b[q].cast[DType.float64]())
+        _ = assert_equal[DType.float64](c[q].to_float64(), b[q].cast[DType.float64]())
 
 
 fn torch_v_hardswish() raises:
@@ -78,14 +77,14 @@ fn torch_v_hardswish() raises:
 
     let c = torch.nn.functional.hardswish(a)
     for q in range(a.numel()):
-        assert_equal[DType.float64](c[q].to_float64(), b[q].cast[DType.float64]())
+        _ = assert_equal[DType.float64](c[q].to_float64(), b[q].cast[DType.float64]())
 
 
 fn test_starts_with() raises:
-    assert_true(
+    _ = assert_true(
         strings.startswith("Abcd", "Abc"), "Expected 'Abcd' to start with 'Abc'"
     )
-    assert_false(
+    _ = assert_false(
         strings.startswith("Abcd", "abc"), "Expected 'Abcd' not to start with 'abc'"
     )
 
