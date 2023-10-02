@@ -21,7 +21,7 @@ jobs:
       - name: Install mojo
         run: |
           modular install mojo 
-          echo "/home/runner/.modular/pkg/packages.modular.com_mojo/bin" >> ~/.bashrc
+          echo "/home/runner/.modular/pkg/packages.modular.com_mojo/bin" >> $GITHUB_PATH
           .source ~/.bashrc
       - name: Install dependencies
         run: |
