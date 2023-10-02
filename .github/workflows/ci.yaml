@@ -16,7 +16,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install .
       - name: Install modular
-        run: apt install curl && curl https://get.modular.com | MODULAR_AUTH=mut_793643b228a947269687379f7ad596d4 sh -
+        run: sudo apt install curl && curl https://get.modular.com | MODULAR_AUTH=mut_793643b228a947269687379f7ad596d4 sh -
       - name: Install mojo
         run: modular install mojo
       - name: Unit tests
