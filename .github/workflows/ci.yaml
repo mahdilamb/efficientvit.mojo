@@ -3,7 +3,7 @@ name: Check code quality and run unit tests
 on: [push]
 
 jobs:
-  build:
+  create-environment:
     runs-on: ubuntu-latest
     env:
       MODULAR_HOME: /home/runner/.modular
@@ -29,4 +29,4 @@ jobs:
           pip install .
       - name: Unit tests
         if: ${{ always() }}
-        run: /home/runner/.modular/pkg/packages.modular.com_mojo/bin/mojo run tests.mojo
+        run: mojo run tests.mojo
