@@ -21,14 +21,12 @@ jobs:
       - name: Install mojo
         run: |
           modular install mojo 
-          echo /home/runner/.modular/pkg/packages.modular.com_mojo/bin >> ~/.bashrc
-          . ~/.bashrc
-          echo $MODULAR_HOME
-          which mojo
+          echo "/home/runner/.modular/pkg/packages.modular.com_mojo/bin" >> ~/.bashrc
+          .source ~/.bashrc
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install .
       - name: Unit tests
         if: ${{ always() }}
-        run: mojo run tests.mojo
+        run: /home/runner/.modular/pkg/packages.modular.com_mojo/binmojo run tests.mojo
