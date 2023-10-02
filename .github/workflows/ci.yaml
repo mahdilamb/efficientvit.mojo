@@ -22,11 +22,11 @@ jobs:
         run: |
           modular install mojo 
           echo "/home/runner/.modular/pkg/packages.modular.com_mojo/bin" >> $GITHUB_PATH
-          .source ~/.bashrc
+          source ~/.bashrc
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install .
       - name: Unit tests
         if: ${{ always() }}
-        run: /home/runner/.modular/pkg/packages.modular.com_mojo/binmojo run tests.mojo
+        run: /home/runner/.modular/pkg/packages.modular.com_mojo/bin/mojo run tests.mojo
