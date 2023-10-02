@@ -3,7 +3,7 @@ name: Check code quality and run unit tests
 on: [push]
 
 jobs:
-  create-environment:
+  run:
     runs-on: ubuntu-latest
     env:
       MODULAR_HOME: /home/runner/.modular
