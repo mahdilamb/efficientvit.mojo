@@ -7,7 +7,7 @@ from sys.info import sizeof
 from tensor import TensorShape, Tensor
 from python import Python, Dictionary
 from utils.static_tuple import StaticTuple
-import layers
+from shared import modules
 
 alias SEEK_SET: Int = 0
 alias SEEK_CUR: Int = SEEK_SET + 1
@@ -153,7 +153,9 @@ struct Weights:
     @always_inline
     fn get[dtype: DType](self, name: String) raises -> Tensor[dtype]:
         let pos = self._index[name].__index__()
-        external_call["fseek", Int, Pointer[FILE], Int64, Int](self._fp, pos, SEEK_SET)
+        _ = external_call["fseek", Int, Pointer[FILE], Int64, Int](
+            self._fp, pos, SEEK_SET
+        )
         let ptr = external_call[
             "fgets", Pointer[UInt8], Pointer[UInt8], Int32, Pointer[FILE]
         ](Pointer[UInt8]().alloc(128), 128, self._fp)
@@ -162,9 +164,9 @@ struct Weights:
         if info.type != dtype.__str__():
             raise Error("Invalid dtype supplied.")
         let data = DTypePointer[DType.uint8].alloc(info.bytes)
-        external_call["fread", Int, DTypePointer[DType.uint8], Int, Int, Pointer[FILE]](
-            data, 1, info.bytes, self._fp
-        )
+        _ = external_call[
+            "fread", Int, DTypePointer[DType.uint8], Int, Int, Pointer[FILE]
+        ](data, 1, info.bytes, self._fp)
         return Tensor(data.bitcast[dtype](), info.shape)
 
 
@@ -191,6 +193,8 @@ fn load(path: String) raises -> Weights:
         let qpos = pos
         let info = WeightsInfo.from_string(read_line[512]())
         index[info.name] = qpos
-        external_call["fseek", Int, Pointer[FILE], Int64, Int](fp, info.bytes, SEEK_CUR)
+        _ = external_call["fseek", Int, Pointer[FILE], Int64, Int](
+            fp, info.bytes, SEEK_CUR
+        )
         pos = external_call["ftell", Int, Pointer[FILE]](fp)
     return Weights(index ^, fp ^)
