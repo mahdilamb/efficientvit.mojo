@@ -20,7 +20,7 @@ jobs:
         run: |
           modular install mojo 
           echo 'export MODULAR_HOME="/home/runner/.modular"' >> ~/.bashrc
-          echo 'export PATH="/home/runner/.modular/pkg/packages.modular.com_mojo/bin:$PATH"' >> ~/.bashrc
+          echo 'export GITHUB_PATH="/home/runner/.modular/pkg/packages.modular.com_mojo/bin:$GITHUB_PATH"' >> ~/.bashrc
           . ~/.bashrc
           echo $MODULAR_HOME
           which mojo
