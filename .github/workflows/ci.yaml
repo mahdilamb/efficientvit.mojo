@@ -25,6 +25,8 @@ jobs:
           echo 'export MODULAR_HOME="/home/runner/.modular"' >> ~/.bashrc
           echo 'export PATH="/home/runner/.modular/pkg/packages.modular.com_mojo/bin:$PATH"' >> ~/.bashrc
           source ~/.bashrc
+          echo $MODULAR_HOME
+          echo ~/.bashrc
           which mojo
       - name: Unit tests
         if: ${{ always() }}
