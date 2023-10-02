@@ -16,9 +16,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install .
       - name: Install modular
-        run: sudo apt install curl && curl https://get.modular.com | MODULAR_AUTH=mut_793643b228a947269687379f7ad596d4 sh -
+        run: |
+          sudo apt install curl
+          curl https://get.modular.com | MODULAR_AUTH=mut_793643b228a947269687379f7ad596d4 sh -
       - name: Install mojo
-        run: modular install mojo && echo 'export MODULAR_HOME="/home/runner/.modular"' >> ~/.bashrc && echo 'export PATH="/home/runner/.modular/pkg/packages.modular.com_mojo/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc
+        run: |
+          modular install mojo 
+          echo 'export MODULAR_HOME="/home/runner/.modular"' >> ~/.bashrc
+          echo 'export PATH="/home/runner/.modular/pkg/packages.modular.com_mojo/bin:$PATH"' >> ~/.bashrc
+          source ~/.bashrc
       - name: Unit tests
         if: ${{ always() }}
         run: mojo run tests.mojo
