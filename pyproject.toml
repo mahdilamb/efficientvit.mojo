@@ -6,10 +6,6 @@ dependencies = [
   "torch==2.0.1",
   "torchvision==0.15.2",
   "opencv-python",
-  "timm==0.6.13",
-  "torchpack@git+https://github.com/zhijian-liu/torchpack#egg=3a5a9f7ac665444e1eb45942ee3f8fc7ffbd84e5",
-  "transformers",
-  "TinyNeuralNetwork@git+https://github.com/alibaba/TinyNeuralNetwork",
 ]
 name = "efficient-vit-mojo"
 requires-python = "~=3.10"
