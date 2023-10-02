@@ -1,5 +1,5 @@
 """Module containing activation functions."""
-#TODO vectorize
+# TODO vectorize
 from tensor import Tensor, TensorSpec
 
 

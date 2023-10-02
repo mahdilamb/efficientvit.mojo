@@ -27,7 +27,9 @@ fn numpy_copied_test() raises:
     let a = np.random.rand(16).astype(np.float32)
     let p = pointers.from_numpy[16](a)
     for q in range(16):
-        _ = assert_equal[DType.float64](a[q].to_float64(), p.load(q).cast[DType.float64]())
+        _ = assert_equal[DType.float64](
+            a[q].to_float64(), p.load(q).cast[DType.float64]()
+        )
 
 
 fn numpy_shared_test() raises:
@@ -36,7 +38,9 @@ fn numpy_shared_test() raises:
     let a = np.random.rand(16).astype(np.float32)
     let p = pointers.from_numpy[16](a, False)
     for q in range(16):
-        _ = assert_equal[DType.float64](a[q].to_float64(), p.load(q).cast[DType.float64]())
+        _ = assert_equal[DType.float64](
+            a[q].to_float64(), p.load(q).cast[DType.float64]()
+        )
 
 
 fn torch_copied_test() raises:
@@ -46,7 +50,9 @@ fn torch_copied_test() raises:
     let a = torch.rand(16).type(torch.float32)
     let p = pointers.from_torch[16](a)
     for q in range(a.numel()):
-        _ = assert_equal[DType.float64](a[q].to_float64(), p.load(q).cast[DType.float64]())
+        _ = assert_equal[DType.float64](
+            a[q].to_float64(), p.load(q).cast[DType.float64]()
+        )
 
 
 fn torch_shared_test() raises:
@@ -55,7 +61,9 @@ fn torch_shared_test() raises:
     let a = torch.rand(16).type(torch.float32)
     let p = pointers.from_torch[16](a, False)
     for q in range(a.numel()):
-        _ = assert_equal[DType.float64](a[q].to_float64(), p.load(q).cast[DType.float64]())
+        _ = assert_equal[DType.float64](
+            a[q].to_float64(), p.load(q).cast[DType.float64]()
+        )
 
 
 fn torch_v_relu() raises:
