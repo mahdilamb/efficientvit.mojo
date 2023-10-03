@@ -36,7 +36,7 @@ fn numpy_shared_test() raises:
     """Test that we can get a mojo buffer from a numpy array, without copying."""
     let np = Python.import_module("numpy")
     let a = np.random.rand(16).astype(np.float32)
-    let p = pointers.from_numpy[16](a, False)
+    let p = pointers.from_numpy[16](a)
     for q in range(16):
         _ = assert_equal[DType.float64](
             a[q].to_float64(), p.load(q).cast[DType.float64]()
@@ -59,7 +59,7 @@ fn torch_shared_test() raises:
     """Test that we can get a mojo buffer from a torch array, without copying."""
     let torch = Python.import_module("torch")
     let a = torch.rand(16).type(torch.float32)
-    let p = pointers.from_torch[16](a, False)
+    let p = pointers.from_torch[16](a)
     for q in range(a.numel()):
         _ = assert_equal[DType.float64](
             a[q].to_float64(), p.load(q).cast[DType.float64]()

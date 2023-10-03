@@ -446,7 +446,7 @@ def cls_head(
     weights: dict[str, torch.Tensor],
     norm: Norm = "batch",
     act: Act = "hardswish",
-    fid="stage_final",
+    stage_name: str = "stage_final",
 ):
     layers: Layer = sequential(
         *[
@@ -468,7 +468,7 @@ def cls_head(
     )
 
     def call(x_dict: dict[str, torch.Tensor]) -> torch.Tensor:
-        x = x_dict[fid]
+        x = x_dict[stage_name]
         x = layers(x)
         return x
 
