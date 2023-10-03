@@ -169,6 +169,10 @@ struct Weights:
         ](data, 1, info.bytes, self._fp)
         return Tensor(data.bitcast[dtype](), info.shape)
 
+    @always_inline
+    fn has(self, name: String) raises -> Bool:
+        return self._index.__contains__(name).__bool__()
+
 
 fn load(path: String) raises -> Weights:
     """Read an EfficientViT checkpoint file."""
